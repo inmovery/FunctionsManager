@@ -1,0 +1,28 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:system="clr-namespace:System;assembly=mscorlib">
+	<!-- Default font family -->
+	<FontFamily x:Key="RegularFontFamily">./#Open Sans</FontFamily>
+
+	<system:Double x:Key="RegularFontSize">13</system:Double>
+	<system:Double x:Key="MediumFontSize">14</system:Double>
+	<system:Double x:Key="SmallFontSize">12</system:Double>
+	<system:Double x:Key="BigFontSize">17</system:Double>
+	<system:Double x:Key="VeryBigFontSize">19</system:Double>
+	<system:Double x:Key="GreatFontSize">18</system:Double>
+	<system:Double x:Key="SuperBigFontSize">21</system:Double>
+	<system:Double x:Key="SuperBigNumberFontSize">72</system:Double>
+
+	<system:Double x:Key="BigHeight">40</system:Double>
+	<system:Double x:Key="RegularHeight">30</system:Double>
+
+	<system:Double x:Key="CornerRadiusUnit">2</system:Double>
+	<CornerRadius x:Key="CornerRadius">2</CornerRadius>
+
+	<system:Double x:Key="DisabledOpacity">0.5</system:Double>
+	<system:Double x:Key="ComponentOpacity">0.8</system:Double>
+
+	<system:Double x:Key="ConfiguratorComponentsHeight">36</system:Double>
+	<system:Double x:Key="ComponentsHeight">36</system:Double>
+
+</ResourceDictionary>

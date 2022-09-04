@@ -1,0 +1,19 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Style x:Key="NoneFocusVisualStyle">
+		<Setter Property="KeyboardNavigation.TabNavigation"
+				Value="None" />
+		<Setter Property="KeyboardNavigation.IsTabStop"
+				Value="False" />
+		<Setter Property="KeyboardNavigation.ControlTabNavigation"
+				Value="None" />
+		<Setter Property="Control.Template">
+			<Setter.Value>
+				<ControlTemplate>
+					<Rectangle StrokeThickness="0"
+							   Stroke="Transparent" />
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+</ResourceDictionary>
