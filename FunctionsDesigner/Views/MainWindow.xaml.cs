@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace FunctionsDesigner
+namespace FunctionsDesigner.Views
 {
 	public partial class MainWindow : Window
 	{

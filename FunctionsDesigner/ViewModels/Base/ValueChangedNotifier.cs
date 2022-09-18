@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using FunctionsDesigner.Events;
+using FunctionsDesigner.Events.ValueChangedEvent;
 
 namespace FunctionsDesigner.ViewModels.Base
 {

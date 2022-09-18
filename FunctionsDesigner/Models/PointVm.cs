@@ -1,20 +1,27 @@
-﻿using System;
+﻿using FunctionsDesigner.Models.Interfaces;
 using FunctionsDesigner.ViewModels.Base;
 
 namespace FunctionsDesigner.Models
 {
-	public class PointVm : ValueChangedNotifier
+	public class PointVm : ValueChangedNotifier, IPoint
 	{
+		private double _temporaryX;
+		private double _temporaryY;
+
 		public PointVm()
 		{
-			X = 0;
-			Y = 0;
+			X = 0.0d;
+			Y = 0.0d;
+
+			InitializeTemporaryParameters();
 		}
 
 		public PointVm(double x, double y)
 		{
 			X = x;
 			Y = y;
+
+			InitializeTemporaryParameters();
 		}
 
 		public double X
@@ -22,9 +29,10 @@ namespace FunctionsDesigner.Models
 			get { return NotifyPropertyGet(() => X); }
 			set
 			{
-				//var oldValue = string.Empty;
+				var oldValue = _temporaryX;
+				_temporaryX = value;
 				NotifyPropertySet(() => X, value);
-				//OnPropertyValueChanged(oldValue, value);
+				OnPropertyValueChanged(oldValue, value);
 			}
 		}
 
@@ -33,10 +41,17 @@ namespace FunctionsDesigner.Models
 			get { return NotifyPropertyGet(() => Y); }
 			set
 			{
-				//var oldValue = string.Empty;
+				var oldValue = _temporaryY;
+				_temporaryY = value;
 				NotifyPropertySet(() => Y, value);
-				//OnPropertyValueChanged(oldValue, value);
+				OnPropertyValueChanged(oldValue, value);
 			}
+		}
+
+		private void InitializeTemporaryParameters()
+		{
+			_temporaryX = X;
+			_temporaryY = Y;
 		}
 	}
 }

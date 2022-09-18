@@ -1,11 +1,26 @@
 {
   "version": 2,
-  "dgSpecHash": "6AqYPbb7dW0PE2C+F5roGxsOw9dsMTG5DUF/1jA79jQssZKgQR52rLoFCTHL91MPST6Q0QxY6OuZ/0uYQGC6VQ==",
+  "dgSpecHash": "nfpciJwF94vS2P6MMSbclRcmfRl3oTrDCjqe1XqOdxTOwJAZ2POJxf1ecFVMDoE6+sBkwu8119SgJY9DBn16vw==",
   "success": true,
   "projectFilePath": "C:\\Users\\inmovery\\Desktop\\Projects\\FunctionsDesigner\\FunctionsDesigner\\FunctionsDesigner.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\inmovery\\.nuget\\packages\\harfbuzzsharp\\2.8.2.1\\harfbuzzsharp.2.8.2.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\2.8.2.1\\harfbuzzsharp.nativeassets.macos.2.8.2.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\2.8.2.1\\harfbuzzsharp.nativeassets.win32.2.8.2.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\livechartscore\\2.0.0-beta.400\\livechartscore.2.0.0-beta.400.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\livechartscore.skiasharpview\\2.0.0-beta.400\\livechartscore.skiasharpview.2.0.0-beta.400.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\livechartscore.skiasharpview.wpf\\2.0.0-beta.400\\livechartscore.skiasharpview.wpf.2.0.0-beta.400.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\microsoft.netcore.platforms\\2.0.0\\microsoft.netcore.platforms.2.0.0.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\microsoft.win32.systemevents\\4.5.0\\microsoft.win32.systemevents.4.5.0.nupkg.sha512",
     "C:\\Users\\inmovery\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.39\\microsoft.xaml.behaviors.wpf.1.1.39.nupkg.sha512",
     "C:\\Users\\inmovery\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\skiasharp\\2.88.1\\skiasharp.2.88.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\skiasharp.harfbuzz\\2.88.1\\skiasharp.harfbuzz.2.88.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.1\\skiasharp.nativeassets.macos.2.88.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.1\\skiasharp.nativeassets.win32.2.88.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\skiasharp.views.desktop.common\\2.88.1\\skiasharp.views.desktop.common.2.88.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\skiasharp.views.wpf\\2.88.1\\skiasharp.views.wpf.2.88.1.nupkg.sha512",
+    "C:\\Users\\inmovery\\.nuget\\packages\\system.drawing.common\\4.5.1\\system.drawing.common.4.5.1.nupkg.sha512",
     "C:\\Users\\inmovery\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.21\\microsoft.netcore.app.host.win-x64.3.1.21.nupkg.sha512"
   ],
   "logs": []

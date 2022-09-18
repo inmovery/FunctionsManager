@@ -1,7 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
-namespace FunctionsDesigner
+namespace FunctionsDesigner.ExtendedControls.PointEditor
 {
 	public partial class PointEditor : UserControl
 	{
@@ -18,6 +19,12 @@ namespace FunctionsDesigner
 			typeof(PointEditor),
 			new FrameworkPropertyMetadata(0.0d, OnParameterYChanged));
 
+		public static readonly DependencyProperty DisableDeletionProperty = DependencyProperty.Register(
+			nameof(DisableDeletion),
+			typeof(bool),
+			typeof(PointEditor),
+			new PropertyMetadata(false));
+
 		public static readonly RoutedEvent ParameterXChangedEvent = EventManager.RegisterRoutedEvent(
 			nameof(ParameterXChanged),
 			RoutingStrategy.Bubble,
@@ -29,6 +36,12 @@ namespace FunctionsDesigner
 			RoutingStrategy.Bubble,
 			typeof(RoutedEventHandler),
 			typeof(PointEditor));
+
+		public static readonly DependencyProperty RemovePointCommandProperty = DependencyProperty.Register(
+			nameof(RemovePointCommand),
+			typeof(ICommand),
+			typeof(PointEditor),
+			new UIPropertyMetadata(default));
 
 		public PointEditor()
 		{
@@ -47,6 +60,12 @@ namespace FunctionsDesigner
 			set => SetValue(ParameterXProperty, value);
 		}
 
+		public bool DisableDeletion
+		{
+			get => (bool)GetValue(DisableDeletionProperty);
+			set => SetValue(DisableDeletionProperty, value);
+		}
+
 		public event RoutedEventHandler ParameterXChanged
 		{
 			add => AddHandler(ParameterXChangedEvent, value);
@@ -57,6 +76,12 @@ namespace FunctionsDesigner
 		{
 			add => AddHandler(ParameterYChangedEvent, value);
 			remove => RemoveHandler(ParameterYChangedEvent, value);
+		}
+
+		public ICommand RemovePointCommand
+		{
+			get => (ICommand)GetValue(RemovePointCommandProperty);
+			set => SetValue(RemovePointCommandProperty, value);
 		}
 
 		public static void OnParameterXChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)

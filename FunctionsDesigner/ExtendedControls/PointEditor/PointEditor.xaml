@@ -1,12 +1,21 @@
-﻿<UserControl x:Class="FunctionsDesigner.PointEditor"
+﻿<UserControl x:Class="FunctionsDesigner.ExtendedControls.PointEditor.PointEditor"
 			 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:local="clr-namespace:FunctionsDesigner"
+			 xmlns:valueConverters="clr-namespace:FunctionsDesigner.Converters.ValueConverters"
+			 xmlns:pointEditor="clr-namespace:FunctionsDesigner.ExtendedControls.PointEditor"
 			 mc:Ignorable="d"
 			 d:DesignHeight="100"
 			 d:DesignWidth="200">
+	<!--<UserControl.DataContext>
+		<pointEditor:PointEditorVm />
+	</UserControl.DataContext>-->
+	<UserControl.Resources>
+		<valueConverters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+		<!-- ToDo: вынести конвертеры в единый style -->
+	</UserControl.Resources>
 	<Border>
 		<Grid>
 			<Grid.ColumnDefinitions>
@@ -16,20 +25,27 @@
 				<ColumnDefinition Width="Auto" />
 			</Grid.ColumnDefinitions>
 			<TextBox Grid.Column="0"
-					 Style="{StaticResource CustomTextBox}"
+					 Style="{StaticResource PlaceholderTextBox}"
+					 Validation.ErrorTemplate="{x:Null}"
+					 Tag="X"
 					 Height="40"
 					 HorizontalContentAlignment="Center"
 					 FontSize="14"
 					 Text="{Binding ParameterX, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
 			<TextBox Grid.Column="2"
-					 Style="{StaticResource CustomTextBox}"
+					 Style="{StaticResource PlaceholderTextBox}"
+					 Validation.ErrorTemplate="{x:Null}"
+					 Tag="Y"
 					 Height="40"
 					 HorizontalContentAlignment="Center"
 					 FontSize="14"
 					 Text="{Binding ParameterY, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
 			<Button Grid.Column="3"
 					Style="{StaticResource RegularButtonTemplate}"
-					Margin="5,0,0,0">
+					Margin="5,0,0,0"
+					Visibility="{Binding DisableDeletion, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+					Command="{Binding RemovePointCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+					CommandParameter="{Binding}">
 				<ContentControl Content="{StaticResource RemoveIconTemplate}" />
 			</Button>
 		</Grid>

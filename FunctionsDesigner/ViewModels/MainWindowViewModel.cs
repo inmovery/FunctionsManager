@@ -1,10 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
 using FunctionsDesigner.Commands;
-using FunctionsDesigner.Extensions;
 using FunctionsDesigner.Models;
 using FunctionsDesigner.ViewModels.Base;
 
@@ -16,36 +17,31 @@ namespace FunctionsDesigner.ViewModels
 		{
 			Functions = new ObservableCollection<FunctionVm>();
 
-			IsFunctionSelected = false;
+			var notSelectedFunction = new Function("Not selected");
+			notSelectedFunction.MarkAsUnused();
 
-			var notSelectedFunction = new FunctionVm("Not selected");
-			notSelectedFunction.Points.Add(new PointVm());
-			Functions.Add(notSelectedFunction);
-
-			var firstFunction = new FunctionVm("Function # 1");
-			Functions.Add(firstFunction);
-
-			var secondFunctions = new FunctionVm("Function # 2");
-			Functions.Add(secondFunctions);
-
+			var notSelectedFunctionVm = new FunctionVm(notSelectedFunction);
+			Functions.Add(notSelectedFunctionVm);
 			SelectedFunction = Functions.First();
 
-			SelectedFunction = null;
 			NeedShowInverseFunction = false;
 
 			WindowClosingRequestedCommand = new RelayCommand<CancelEventArgs>(ExecuteWindowClosingRequestedCommand);
 			SaveProjectCommand = new RelayCommand(ExecuteSaveProjectCommand);
-			AddPointCommand = new RelayCommand(ExecuteAddPointCommand);
+			AddFunctionCommand = new RelayCommand(ExecuteAddFunctionCommand);
+
+			Chart = new ChartVm();
+			// Chart.Series.Add(firstFunctionVm.Series);
 		}
 
 		public ICommand WindowClosingRequestedCommand { get; }
 		public ICommand SaveProjectCommand { get; }
-		public ICommand AddPointCommand { get; }
+		public ICommand AddFunctionCommand { get; }
 
-		public bool IsFunctionSelected
+		public bool IsUnusedFunctionSelected
 		{
-			get { return NotifyPropertyGet(() => IsFunctionSelected); }
-			set { NotifyPropertySet(() => IsFunctionSelected, value); }
+			get { return NotifyPropertyGet(() => IsUnusedFunctionSelected); }
+			set { NotifyPropertySet(() => IsUnusedFunctionSelected, value); }
 		}
 
 		public ObservableCollection<FunctionVm> Functions
@@ -57,7 +53,11 @@ namespace FunctionsDesigner.ViewModels
 		public FunctionVm SelectedFunction
 		{
 			get { return NotifyPropertyGet(() => SelectedFunction); }
-			set { NotifyPropertySet(() => SelectedFunction, value); }
+			set
+			{
+				NotifyPropertySet(() => SelectedFunction, value);
+				CheckUnusedFunction();
+			}
 		}
 
 		public bool NeedShowInverseFunction
@@ -66,9 +66,31 @@ namespace FunctionsDesigner.ViewModels
 			set { NotifyPropertySet(() => NeedShowInverseFunction, value); }
 		}
 
-		private void ExecuteAddPointCommand()
+		public ChartVm Chart
 		{
-			SelectedFunction.Points.Add(new PointVm());
+			get { return NotifyPropertyGet(() => Chart); }
+			set { NotifyPropertySet(() => Chart, value); }
+		}
+
+		private void CheckUnusedFunction()
+		{
+			IsUnusedFunctionSelected = SelectedFunction.Function.FunctionType == FunctionType.Unused;
+		}
+
+		private string GenerateFunctionName()
+		{
+			return $"Function # {Functions.Count}";
+		}
+
+		private void ExecuteAddFunctionCommand()
+		{
+			var functionName = GenerateFunctionName();
+			var function = new Function(functionName);
+			var functionVm = new FunctionVm(function);
+
+			Functions.Add(functionVm);
+			Chart.Series.Add(functionVm.Series);
+			SelectedFunction = functionVm;
 		}
 
 		private void ExecuteSaveProjectCommand()
