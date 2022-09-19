@@ -10,7 +10,7 @@
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="30" />
+							<ColumnDefinition Width="50" />
 						</Grid.ColumnDefinitions>
 						<Border Grid.Column="0"
 								CornerRadius="{StaticResource CornerRadius}"
@@ -25,7 +25,18 @@
 							  Margin="1"
 							  Background="Transparent"
 							  Grid.Column="1">
-							<Path Stretch="Fill"
+							  <Grid.ColumnDefinitions>
+								  <ColumnDefinition Width="Auto" />
+								  <ColumnDefinition Width="*" />
+							  </Grid.ColumnDefinitions>
+							<!-- ToDo: move to DataTemplate -->
+							<Ellipse Grid.Column="0"
+									 Fill="Transparent"
+									 Height="15"
+									 Width="15"
+									 StrokeThickness="5" />
+							<Path Grid.Column="1"
+								  Stretch="Fill"
 								  Height="8"
 								  Width="14"
 								  x:Name="Arrow"

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Text;
 using System.Windows.Input;
 using FunctionsDesigner.Commands;
+using FunctionsDesigner.Converters.JsonConverters;
 using FunctionsDesigner.Models;
 using FunctionsDesigner.Models.Interfaces;
 using FunctionsDesigner.ViewModels.Base;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using Newtonsoft.Json;
+using SkiaSharp;
 
 namespace FunctionsDesigner.ViewModels
 {
@@ -17,16 +18,20 @@ namespace FunctionsDesigner.ViewModels
 		public FunctionVm()
 		{
 			Function = new Function();
-			Series = BuildSeries();
+			Properties = new FunctionPropertiesSelector();
+
+			Series = BuildLineSeries();
 			Series.Values = Function.Points;
 			NewXParameter = 0.0d;
 			NewYParameter = 0.0d;
 		}
 
-		public FunctionVm(IFunction function)
+		public FunctionVm(IFunction function, FunctionPropertiesSelector functionPropertiesSelector)
 		{
 			Function = (Function)function;
-			Series = BuildSeries();
+			Properties = functionPropertiesSelector;
+
+			Series = BuildLineSeries();
 			Series.Values = Function.Points;
 
 			Function.PropertyChanged += OnFunctionPropertyChanged;
@@ -45,10 +50,17 @@ namespace FunctionsDesigner.ViewModels
 			set { NotifyPropertySet(() => Function, value); }
 		}
 
+		[JsonProperty(TypeNameHandling = TypeNameHandling.Objects, ItemConverterType = typeof(PointConverter))]
 		public LineSeries<IPoint> Series
 		{
 			get { return NotifyPropertyGet(() => Series); }
 			set { NotifyPropertySet(() => Series, value); }
+		}
+
+		public FunctionPropertiesSelector Properties
+		{
+			get { return NotifyPropertyGet(() => Properties); }
+			set { NotifyPropertySet(() => Properties, value); }
 		}
 
 		public double NewXParameter
@@ -70,14 +82,33 @@ namespace FunctionsDesigner.ViewModels
 
 		private void OnPointsCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs)
 		{
-
 		}
 
-		private LineSeries<IPoint> BuildSeries()
+		private LineSeries<IPoint, CustomChartGeometry> BuildCustomLineSeries()
+		{
+			var series = new LineSeries<IPoint, CustomChartGeometry>()
+			{
+				LineSmoothness = 0,
+				Stroke = new SolidColorPaint(SKColors.Black, 3),
+				Fill = null,
+				GeometryStroke = null,
+				GeometryFill = new SolidColorPaint(SKColors.Black),
+				GeometrySize = 15
+			};
+
+			return series;
+		}
+
+		private LineSeries<IPoint> BuildLineSeries()
 		{
 			var series = new LineSeries<IPoint>()
 			{
-				LineSmoothness = 0,
+				LineSmoothness = Properties.LineSmoothness,
+				Stroke = Properties.Stroke,
+				Fill = Properties.Fill,
+				GeometryStroke = Properties.GeometryStroke,
+				GeometryFill = Properties.GeometryFill,
+				GeometrySize = Properties.GeometrySize
 			};
 
 			return series;
@@ -86,7 +117,6 @@ namespace FunctionsDesigner.ViewModels
 		private void ExecuteAddPointCommand()
 		{
 			Function.Add(NewXParameter, NewYParameter);
-			// Series Add(new PointVm(NewXParameter, NewYParameter));
 		}
 
 		private void ExecuteRemovePointCommand(PointVm point)

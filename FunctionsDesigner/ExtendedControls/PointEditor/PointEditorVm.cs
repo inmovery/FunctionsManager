@@ -8,8 +8,14 @@ namespace FunctionsDesigner.ExtendedControls.PointEditor
 	{
 		public PointEditorVm()
 		{
+			ApplyChangesCommand = new RelayCommand(ExecuteApplyChangesCommand);
 		}
 
-		public ICommand RemovePointCommand { get; }
+		public ICommand ApplyChangesCommand { get; }
+
+		private void ExecuteApplyChangesCommand()
+		{
+
+		}
 	}
 }

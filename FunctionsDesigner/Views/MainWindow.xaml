@@ -11,16 +11,20 @@
 		xmlns:extendedControls="clr-namespace:FunctionsDesigner.ExtendedControls"
 		xmlns:liveCharts="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
 		xmlns:pointEditor="clr-namespace:FunctionsDesigner.ExtendedControls.PointEditor"
-		ResizeMode="NoResize"
+		xmlns:liveChartsCore="clr-namespace:LiveChartsCore;assembly=LiveChartsCore"
 		mc:Ignorable="d"
 		Title="MainWindow"
 		Height="450"
-		Width="900">
+		Width="900"
+		MinHeight="450"
+		MinWidth="900">
+	<!-- ToDo: подумать над ResizeMode="NoResize" -->
 	<Window.DataContext>
 		<vms:MainWindowViewModel />
 	</Window.DataContext>
 	<Window.Resources>
-		<valueConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+		<valueConverters:EnumToVisibilityConverter x:Key="EnumToVisibilityConverter" />
+		<valueConverters:PointColorToColorBrushConverter x:Key="PointColorToColorBrushConverter" />
 		<valueConverters:CountToVisibilityConverter x:Key="CountMoreThanToVisibilityConverter"
 													Type="MoreThan" />
 	</Window.Resources>
@@ -40,7 +44,175 @@
 				<ColumnDefinition Width=".65*" />
 				<ColumnDefinition Width=".35*" />
 			</Grid.ColumnDefinitions>
-			<Grid Grid.Column="0">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="*" />
+			</Grid.RowDefinitions>
+			<Grid Grid.Row="0"
+				  Grid.Column="1"
+				  Margin="0,0,0,10">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="10" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<!-- ToDo: вынести кнопки в отдельный контрол -->
+				<Button Grid.Column="0"
+						VerticalAlignment="Center"
+						Content="Open project"
+						Background="{StaticResource GeneralBrush}"
+						Command="{Binding OpenProjectCommand}"
+						Foreground="{StaticResource WhiteBrush}"
+						BorderBrush="{StaticResource WhiteBrush}"
+						BorderThickness="2">
+					<Button.Style>
+						<Style TargetType="{x:Type Button}">
+							<Setter Property="Template">
+								<Setter.Value>
+									<ControlTemplate TargetType="{x:Type Button}">
+										<Border x:Name="ButtonBorder"
+												Width="Auto"
+												Height="Auto"
+												BorderBrush="{TemplateBinding BorderBrush}"
+												BorderThickness="{TemplateBinding BorderThickness}"
+												Background="{TemplateBinding Background}"
+												Padding="5"
+												CornerRadius="6">
+											<StackPanel Orientation="Horizontal"
+														HorizontalAlignment="Center">
+												<Path x:Name="AddMark"
+													  Width="30"
+													  Height="24"
+													  Fill="White"
+													  Data="{StaticResource OpenFolderIcon}"
+													  Margin="0, 0, 5, 0" />
+												<ContentPresenter x:Name="TextContent"
+																  TextBlock.FontSize="16"
+																  TextBlock.Foreground="{TemplateBinding Foreground}"
+																  VerticalAlignment="Center"
+																  TextBlock.FontWeight="SemiBold" />
+											</StackPanel>
+										</Border>
+										<ControlTemplate.Triggers>
+											<Trigger Property="IsDefaulted"
+													 Value="True">
+												<Setter Property="BorderBrush"
+														TargetName="ButtonBorder"
+														Value="Black" />
+											</Trigger>
+											<Trigger Property="IsMouseOver"
+													 Value="True">
+												<Setter Property="Cursor"
+														Value="Hand" />
+												<!--<Setter Property="TextBlock.Foreground"
+														TargetName="TextContent"
+														Value="{StaticResource GeneralBrush}" />-->
+												<Setter Property="BorderBrush"
+														TargetName="ButtonBorder"
+														Value="{StaticResource GeneralBrush}" />
+											</Trigger>
+											<Trigger Property="IsPressed"
+													 Value="True">
+												<Setter Property="BorderBrush"
+														TargetName="ButtonBorder"
+														Value="#CAD6FF" />
+												<Setter Property="Background"
+														TargetName="ButtonBorder"
+														Value="{StaticResource GeneralBrush}" />
+												<Setter Property="TextBlock.Foreground"
+														TargetName="TextContent"
+														Value="{StaticResource ForegroundWhiteBrush}" />
+												<Setter Property="Opacity"
+														TargetName="ButtonBorder"
+														Value="1" />
+											</Trigger>
+										</ControlTemplate.Triggers>
+									</ControlTemplate>
+								</Setter.Value>
+							</Setter>
+						</Style>
+					</Button.Style>
+				</Button>
+				<Button Grid.Column="2"
+						VerticalAlignment="Center"
+						Content="Save project"
+						Background="{StaticResource GeneralBrush}"
+						Command="{Binding SaveProjectCommand}"
+						Foreground="{StaticResource WhiteBrush}"
+						BorderBrush="{StaticResource WhiteBrush}"
+						BorderThickness="2">
+					<Button.Style>
+						<Style TargetType="{x:Type Button}">
+							<Setter Property="Template">
+								<Setter.Value>
+									<ControlTemplate TargetType="{x:Type Button}">
+										<Border x:Name="ButtonBorder"
+												Width="Auto"
+												Height="Auto"
+												BorderBrush="{TemplateBinding BorderBrush}"
+												BorderThickness="{TemplateBinding BorderThickness}"
+												Background="{TemplateBinding Background}"
+												Padding="5"
+												CornerRadius="6">
+											<StackPanel Orientation="Horizontal"
+														HorizontalAlignment="Center">
+												<Path x:Name="AddMark"
+													  Width="24"
+													  Height="24"
+													  Fill="White"
+													  Data="{StaticResource SaveProjectIcon}"
+													  Margin="0, 0, 5, 0" />
+												<ContentPresenter x:Name="TextContent"
+																  TextBlock.FontSize="16"
+																  TextBlock.Foreground="{TemplateBinding Foreground}"
+																  VerticalAlignment="Center"
+																  TextBlock.FontWeight="SemiBold" />
+											</StackPanel>
+										</Border>
+										<ControlTemplate.Triggers>
+											<Trigger Property="IsDefaulted"
+													 Value="True">
+												<Setter Property="BorderBrush"
+														TargetName="ButtonBorder"
+														Value="Black" />
+											</Trigger>
+											<Trigger Property="IsMouseOver"
+													 Value="True">
+												<Setter Property="Cursor"
+														Value="Hand" />
+												<!--<Setter Property="TextBlock.Foreground"
+														TargetName="TextContent"
+														Value="{StaticResource GeneralBrush}" />-->
+												<Setter Property="BorderBrush"
+														TargetName="ButtonBorder"
+														Value="{StaticResource GeneralBrush}" />
+											</Trigger>
+											<Trigger Property="IsPressed"
+													 Value="True">
+												<Setter Property="BorderBrush"
+														TargetName="ButtonBorder"
+														Value="#CAD6FF" />
+												<Setter Property="Background"
+														TargetName="ButtonBorder"
+														Value="{StaticResource GeneralBrush}" />
+												<Setter Property="TextBlock.Foreground"
+														TargetName="TextContent"
+														Value="{StaticResource ForegroundWhiteBrush}" />
+												<Setter Property="Opacity"
+														TargetName="ButtonBorder"
+														Value="1" />
+											</Trigger>
+										</ControlTemplate.Triggers>
+									</ControlTemplate>
+								</Setter.Value>
+							</Setter>
+						</Style>
+					</Button.Style>
+				</Button>
+			</Grid>
+			<Grid Grid.Row="0"
+				  Grid.RowSpan="2"
+				  Grid.Column="0">
 				<!-- There is a view of piecewise linear function -->
 				<!-- ToDO: see: 
 				1. https://github.com/Live-Charts/Live-Charts/tree/master/Examples/Wpf/CartesianChart
@@ -50,9 +222,13 @@
 										   XAxes="{Binding XAxes}"
 										   YAxes="{Binding YAxes}"
 										   Series="{Binding Series}"
-										   AnimationsSpeed="0" />
+										   AnimationsSpeed="0"
+										   ChartPointPointerDownCommand="MoveDown"
+										   TooltipPosition="Hidden" />
+				<!-- ZoomMode="Both" -->
 			</Grid>
-			<Grid Grid.Column="1"
+			<Grid Grid.Row="1"
+				  Grid.Column="1"
 				  HorizontalAlignment="Stretch">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="40" />
@@ -79,11 +255,27 @@
 							  HorizontalAlignment="Center"
 							  ToolTip="False"
 							  Style="{StaticResource ComboBoxStyle}"
-							  Width="140"
+							  Width="160"
 							  Height="35">
 						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding Function.Name}" />
+							<DataTemplate DataType="{x:Type vms:FunctionVm}">
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+									</Grid.ColumnDefinitions>
+									<TextBlock Grid.Column="0"
+											   HorizontalAlignment="Left"
+											   Text="{Binding Function.Name}" />
+									<Ellipse Grid.Column="1"
+											 HorizontalAlignment="Right"
+											 Fill="{Binding Properties.Stroke, Converter={StaticResource PointColorToColorBrushConverter}}"
+											 Visibility="{Binding Function.FunctionType, Converter={StaticResource EnumToVisibilityConverter}, ConverterParameter={x:Static models:FunctionType.Used}}"
+											 Height="15"
+											 Width="15"
+											 Margin="0,0,5,0"
+											 StrokeThickness="5" />
+								</Grid>
 							</DataTemplate>
 						</ComboBox.ItemTemplate>
 					</ComboBox>
@@ -128,8 +320,8 @@
 						<ItemsControl.ItemTemplate>
 							<DataTemplate DataType="{x:Type models:PointVm}">
 								<pointEditor:PointEditor Margin="5"
-														 ParameterX="{Binding X}"
-														 ParameterY="{Binding Y}"
+														 ParameterX="{Binding X, Mode=TwoWay}"
+														 ParameterY="{Binding Y, Mode=TwoWay}"
 														 RemovePointCommand="{Binding DataContext.SelectedFunction.RemovePointCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" />
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using FunctionsDesigner.Converters.JsonConverters;
 using FunctionsDesigner.Events.ValueChangedEvent;
 using FunctionsDesigner.Models.Interfaces;
 using FunctionsDesigner.Models.PointsComparison;
 using FunctionsDesigner.ViewModels.Base;
+using Newtonsoft.Json;
 
 namespace FunctionsDesigner.Models
 {
@@ -76,6 +78,7 @@ namespace FunctionsDesigner.Models
 			set { NotifyPropertySet(() => Name, value); }
 		}
 
+		[JsonProperty(TypeNameHandling = TypeNameHandling.Objects, ItemConverterType = typeof(PointConverter))]
 		public ObservableCollection<IPoint> Points
 		{
 			// ToDO: переделать на IEnumerable с приватным свойством и наследованием от INotifyPropertyChanged
@@ -168,9 +171,7 @@ namespace FunctionsDesigner.Models
 
 		private bool IsXPropertyName(string propertyName)
 		{
-			//return propertyName.Equals(nameof(IPoint.X));
-			IPoint point = null;
-			return propertyName.Equals(nameof(point.X));
+			return propertyName.Equals(nameof(IPoint.X));
 		}
 
 		private void SortPoints(IComparer<IPoint> comparer = null)
