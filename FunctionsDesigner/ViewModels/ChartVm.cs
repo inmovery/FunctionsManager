@@ -1,8 +1,12 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
+using FunctionsDesigner.Models.Interfaces;
 using FunctionsDesigner.ViewModels.Base;
 using LiveChartsCore;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace FunctionsDesigner.Models
 {
@@ -34,5 +38,16 @@ namespace FunctionsDesigner.Models
 				Name = "Y"
 			}
 		};
-    }
+
+		public void Reinitialize()
+		{
+			var series = Series.ToList();
+			Series.Clear();
+			series.ForEach(seriesModel =>
+			{
+				((LineSeries<IPoint>)seriesModel).GeometryFill = new SolidColorPaint(SKColors.Black);
+				Series.Add(seriesModel);
+			});
+		}
+	}
 }

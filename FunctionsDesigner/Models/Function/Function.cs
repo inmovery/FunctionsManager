@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using FunctionsDesigner.Converters.JsonConverters;
-using FunctionsDesigner.Events.ValueChangedEvent;
 using FunctionsDesigner.Models.Interfaces;
 using FunctionsDesigner.Models.PointsComparison;
 using FunctionsDesigner.ViewModels.Base;
@@ -17,24 +14,23 @@ namespace FunctionsDesigner.Models
 		public Function()
 		{
 			Name = string.Empty;
-			Points = new ObservableCollection<IPoint>();
 			FunctionType = FunctionType.Used;
+			Points = new ObservableCollection<IPoint>();
 		}
 
 		public Function(string functionName)
 		{
 			Name = functionName;
-			Points = new ObservableCollection<IPoint>();
 			FunctionType = FunctionType.Used;
+			Points = new ObservableCollection<IPoint>();
 		}
 
 		public Function(string functionName, IEnumerable<IPoint> points)
 		{
 			Name = functionName;
-			Points = new ObservableCollection<IPoint>(points);
 			FunctionType = FunctionType.Used;
+			Points = new ObservableCollection<IPoint>(points);
 
-			// ToDo: подумать над сортировкой
 			SortPoints();
 		}
 
@@ -43,13 +39,8 @@ namespace FunctionsDesigner.Models
 			Name = string.Empty;
 			Points = new ObservableCollection<IPoint>(points);
 			FunctionType = FunctionType.Used;
-
-			// ToDo: подумать над сортировкой
 			SortPoints();
 		}
-
-		public event NotifyCollectionChangedEventHandler CollectionChanged;
-		public event EventHandler FunctionChanged;
 
 		public int Count => Points.Count;
 
@@ -58,7 +49,7 @@ namespace FunctionsDesigner.Models
 			get => Points[index];
 			set
 			{
-				// ToDo: починить возможный экспешн
+				// ToDo: решить эксепшн
 				if (Points[index] == value)
 					return;
 
@@ -78,108 +69,32 @@ namespace FunctionsDesigner.Models
 			set { NotifyPropertySet(() => Name, value); }
 		}
 
-		[JsonProperty(TypeNameHandling = TypeNameHandling.Objects, ItemConverterType = typeof(PointConverter))]
+		[JsonProperty(ItemConverterType = typeof(PointConverter))]
 		public ObservableCollection<IPoint> Points
 		{
-			// ToDO: переделать на IEnumerable с приватным свойством и наследованием от INotifyPropertyChanged
 			get { return NotifyPropertyGet(() => Points); }
-			set
-			{
-				if (Points != null)
-					Points.CollectionChanged -= OnPointsCollectionChanged;
-
-				NotifyPropertySet(() => Points, value);
-				if (Points == null)
-					return;
-
-				Points.CollectionChanged += OnPointsCollectionChanged;
-			}
+			set { NotifyPropertySet(() => Points, value); }
 		}
 
-		public void MarkAsUnused()
-		{
-			FunctionType = FunctionType.Unused;
-		}
+		public void MarkAsUnused() => FunctionType = FunctionType.Unused;
 
-		public void Add(double x, double y)
-		{
-			var point = new PointVm(x, y);
-			point.PropertyValueChanged += OnPointPropertyValueChanged;
-
-			Points.Add(point);
-		}
+		public void Add(IPoint point) => Points.Add(point);
 
 		public void Remove(IPoint point)
 		{
-			if (!Points.Contains(point))
+			var isPointExists = Points.Contains(point);
+			if (!isPointExists)
 				return;
 
-			((PointVm)point).PropertyValueChanged -= OnPointPropertyValueChanged;
 			Points.Remove(point);
-		}
-
-		private void OnPointPropertyValueChanged(object sender, PropertyValueChangedEventArgs e)
-		{
-			if (sender is not IPoint point)
-				throw new ArgumentException(nameof(sender));
-
-			FunctionChanged?.Invoke(this, EventArgs.Empty);
-
-			//ToDo: подумать над сортировкой
-			if (!IsXPropertyName(e.PropertyName))
-			{
-				SortPoints();
-				return;
-			}
-
-			var oldValue = (double?)e.OldValue;
-
-			var pointInfo = new PointInfo(point, oldValue);
-			SortPoints(new PointModelComparer(Points, new[] { pointInfo }));
-		}
-
-		private void OnPointsCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs)
-		{
-			CollectionChanged?.Invoke(sender, eventArgs);
-			FunctionChanged?.Invoke(this, EventArgs.Empty);
-
-			//ToDo: подумать над сортировкой
-			IComparer<IPoint> comparer;
-			List<PointInfo> pointsInfo;
-
-			switch (eventArgs.Action)
-			{
-				case NotifyCollectionChangedAction.Add:
-					pointsInfo = eventArgs.NewItems.Cast<IPoint>().Select(p => new PointInfo(p)).ToList();
-					comparer = new PointModelComparer(Points, pointsInfo);
-					break;
-
-				case NotifyCollectionChangedAction.Replace:
-					var oldPoints = eventArgs.OldItems.Cast<IPoint>().ToArray();
-					var newPoints = eventArgs.NewItems.Cast<IPoint>().ToArray();
-
-					pointsInfo = oldPoints.Select(point => new PointInfo(newPoints[0], oldPoints[0].X)).ToList();
-					comparer = new PointModelComparer(Points, pointsInfo);
-					break;
-
-				default:
-					return;
-			}
-
-			SortPoints(comparer);
-		}
-
-		private bool IsXPropertyName(string propertyName)
-		{
-			return propertyName.Equals(nameof(IPoint.X));
 		}
 
 		private void SortPoints(IComparer<IPoint> comparer = null)
 		{
-			var points = Points.ToList();
+			var pointList = Points.ToList();
 			var sortedPoints = comparer == null
-				? points.OrderBy(p => p.X).Distinct(new PointModelEqualityComparer())
-				: points.OrderBy(p => p, comparer).Distinct(new PointModelEqualityComparer());
+				? pointList.OrderBy(p => p.X).Distinct(new PointModelEqualityComparer())
+				: pointList.OrderBy(p => p, comparer).Distinct(new PointModelEqualityComparer());
 
 			Points = new ObservableCollection<IPoint>(sortedPoints);
 		}

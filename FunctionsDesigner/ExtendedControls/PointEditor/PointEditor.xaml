@@ -14,8 +14,8 @@
 		<pointEditor:PointEditorVm />
 	</UserControl.DataContext>-->
 	<UserControl.Resources>
+		<!-- ToDo: move to single resources dictionary -->
 		<valueConverters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
-		<!-- ToDo: вынести в единый словарь ресурсов -->
 	</UserControl.Resources>
 	<Border>
 		<Grid>
@@ -25,6 +25,7 @@
 				<ColumnDefinition />
 				<ColumnDefinition Width="Auto" />
 			</Grid.ColumnDefinitions>
+			<!-- ToDo: add handling enter key press and filtering certain double values -->
 			<TextBox Grid.Column="0"
 					 Style="{StaticResource PlaceholderTextBox}"
 					 Validation.ErrorTemplate="{x:Null}"

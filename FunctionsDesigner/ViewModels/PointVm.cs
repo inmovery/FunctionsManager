@@ -8,14 +8,6 @@ namespace FunctionsDesigner.Models
 		private double _temporaryX;
 		private double _temporaryY;
 
-		public PointVm()
-		{
-			X = 0.0d;
-			Y = 0.0d;
-
-			InitializeTemporaryParameters();
-		}
-
 		public PointVm(double x, double y)
 		{
 			X = x;

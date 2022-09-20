@@ -8,7 +8,7 @@ namespace FunctionsDesigner.Models.Interfaces
 		IPoint this[int index] { get; set; }
 		string Name { get; }
 		ObservableCollection<IPoint> Points { get; }
-		void Add(double x, double y);
+		void Add(IPoint point);
 		void Remove(IPoint point);
 		void MarkAsUnused();
 	}

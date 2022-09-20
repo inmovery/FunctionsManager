@@ -133,7 +133,9 @@
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="{x:Type Button}">
-					<Border Background="{TemplateBinding Background}">
+					<Border Background="{TemplateBinding Background}"
+							CornerRadius="3"
+							Padding="{TemplateBinding Padding}">
 						<ContentPresenter VerticalAlignment="Center"
 										  HorizontalAlignment="Center" />
 					</Border>

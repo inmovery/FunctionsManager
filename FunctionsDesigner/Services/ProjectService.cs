@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using FunctionsDesigner.Common;
+using FunctionsDesigner.Converters.JsonConverters;
 using FunctionsDesigner.Exceptions;
 using FunctionsDesigner.Models;
 using FunctionsDesigner.Services.Interfaces;
@@ -11,7 +12,14 @@ namespace FunctionsDesigner.Services
 {
 	public class ProjectService : IProjectService
 	{
-		public Project ProjectInstance { get; private set; }
+		private readonly JsonSerializerSettings _jsonSerializerSettings = new()
+		{
+			TypeNameHandling = TypeNameHandling.Auto,
+			ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+			ContractResolver = new JsonObservableCollectionConverter()
+		};
+
+		public Project ProjectInstance { get; protected set; }
 
 		public void InitializeProject()
 		{
@@ -39,13 +47,8 @@ namespace FunctionsDesigner.Services
 
 			try
 			{
-				var serializerSettings = new JsonSerializerSettings()
-				{
-					ReferenceLoopHandling = ReferenceLoopHandling.Serialize
-				};
-
 				var projectContent = await File.ReadAllTextAsync(filePath);
-				ProjectInstance = JsonConvert.DeserializeObject<Project>(projectContent);
+				ProjectInstance = JsonConvert.DeserializeObject<Project>(projectContent, _jsonSerializerSettings);
 			}
 			catch (JsonReaderException exception)
 			{
@@ -64,12 +67,7 @@ namespace FunctionsDesigner.Services
 			if (!Constants.ProjectFileExtension.Equals(Path.GetExtension(filePath), StringComparison.OrdinalIgnoreCase))
 				throw new InvalidFileTypeException($"Only '{Constants.ProjectFileExtension}' files are supported");
 
-			var serializerSettings = new JsonSerializerSettings()
-			{
-				ReferenceLoopHandling = ReferenceLoopHandling.Serialize
-			};
-
-			var projectContent = JsonConvert.SerializeObject(ProjectInstance, serializerSettings);
+			var projectContent = JsonConvert.SerializeObject(ProjectInstance, Formatting.Indented, _jsonSerializerSettings);
 			return File.WriteAllTextAsync(filePath, projectContent);
 		}
 	}

@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using FunctionsDesigner.Commands;
 using FunctionsDesigner.Common;
 using FunctionsDesigner.Exceptions;
 using FunctionsDesigner.Models;
+using FunctionsDesigner.Models.Interfaces;
 using FunctionsDesigner.Services;
 using FunctionsDesigner.Services.Interfaces;
 using FunctionsDesigner.ViewModels.Base;
@@ -23,24 +25,26 @@ namespace FunctionsDesigner.ViewModels
 		private readonly IFileSystemService _fileSystemService;
 		private readonly IMessageService _messageService;
 		private readonly IProjectService _projectService;
+		private readonly IClipboardService _clipboardService;
 
 		private string _filePath = string.Empty;
 
 		public MainWindowViewModel()
 		{
-			_functionPropertiesSelector = new FunctionPropertiesSelector();
 			_fileSystemService = new FileSystemService();
 			_messageService = new MessageService();
 			_projectService = new ProjectService();
+			_clipboardService = new ClipboardService();
+
+			_functionPropertiesSelector = new FunctionPropertiesSelector();
 
 			_projectService.InitializeProject();
 
 			Project = new Project();
 
-			AreAnyUnsavedChanges = false;
-
-			Functions = new ObservableCollection<FunctionVm>();
 			FunctionPropertiesList = new List<FunctionPropertiesSelector>();
+			Functions = new ObservableCollection<FunctionVm>();
+			Functions.CollectionChanged += OnFunctionsCollectionChanged;
 
 			var notSelectedFunction = new Function("Not selected");
 			notSelectedFunction.MarkAsUnused();
@@ -51,19 +55,26 @@ namespace FunctionsDesigner.ViewModels
 			SelectedFunction = Functions.First();
 
 			NeedShowInverseFunction = false;
+			AreAnyUnsavedChanges = false;
 
 			WindowClosingRequestedCommand = new RelayCommand<CancelEventArgs>(ExecuteWindowClosingRequestedCommand);
 			OpenProjectCommand = new RelayCommand(ExecuteOpenProjectCommand);
 			SaveProjectCommand = new RelayCommand(ExecuteSaveProjectCommand);
 			AddFunctionCommand = new RelayCommand(ExecuteAddFunctionCommand);
+			RemoveFunctionCommand = new RelayCommand(ExecuteRemoveFunctionCommand);
+			InsertFromClipboardCommand = new RelayCommand(ExecuteInsertFromClipboardCommand);
+			CopyToClipboardCommand = new RelayCommand(ExecuteCopyToClipboardCommand);
 
 			Chart = new ChartVm();
 		}
 
 		public ICommand WindowClosingRequestedCommand { get; }
 		public ICommand AddFunctionCommand { get; }
+		public ICommand RemoveFunctionCommand { get; }
 		public ICommand OpenProjectCommand { get; }
 		public ICommand SaveProjectCommand { get; }
+		public ICommand InsertFromClipboardCommand { get; }
+		public ICommand CopyToClipboardCommand { get; }
 
 		public bool IsUnusedFunctionSelected
 		{
@@ -116,7 +127,18 @@ namespace FunctionsDesigner.ViewModels
 
 		private string GenerateFunctionName()
 		{
-			return $"Function # {Functions.Count}";
+			if (Functions.Count < 2)
+				return $"Function # {Functions.Count}";
+
+			var maxFunctionNumber = Functions.Skip(1).Select(function =>
+			{
+				var functionName = function.Function.Name;
+				var functionNumber = functionName.Split(new[] { ' ' }).Last();
+
+				return int.Parse(functionNumber);
+			}).Max();
+
+			return $"Function # {++maxFunctionNumber}";
 		}
 
 		private void ExecuteAddFunctionCommand()
@@ -126,11 +148,28 @@ namespace FunctionsDesigner.ViewModels
 			var functionName = GenerateFunctionName();
 			var function = new Function(functionName);
 			var functionVm = new FunctionVm(function, _functionPropertiesSelector);
+			functionVm.FunctionChanged += OnFunctionChanged;
 
 			Functions.Add(functionVm);
 
 			Chart.Series.Add(functionVm.Series);
 			SelectedFunction = functionVm;
+		}
+
+		private void OnFunctionChanged(object sender, EventArgs eventArgs) => AreAnyUnsavedChanges = true;
+
+		private void OnFunctionsCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs) => AreAnyUnsavedChanges = true;
+
+		private void ExecuteRemoveFunctionCommand()
+		{
+			SelectedFunction.Dispose();
+			Chart.Series.Remove(SelectedFunction.Series);
+			Functions.Remove(SelectedFunction);
+
+			var isFunctionsExists = Functions.Skip(1).Any();
+			SelectedFunction = isFunctionsExists ? Functions.Skip(1).First() : Functions.First();
+
+			Chart.Reinitialize();
 		}
 
 		private async void ExecuteSaveProjectCommand()
@@ -164,6 +203,8 @@ namespace FunctionsDesigner.ViewModels
 				_messageService.ShowMessage("Invalid File Type.");
 				_filePath = null;
 			}
+
+			AreAnyUnsavedChanges = false;
 		}
 
 		private static string GetProjectExtensionDescription()
@@ -189,12 +230,64 @@ namespace FunctionsDesigner.ViewModels
 			}
 
 			var loadedFunctions = _projectService.ProjectInstance.Functions;
-			var functions = loadedFunctions.Select(function => new FunctionVm(function, _functionPropertiesSelector));
+			var functions = loadedFunctions.Select(function =>
+			{
+				_functionPropertiesSelector.GenerateStroke();
+				var functionVm = new FunctionVm(function, _functionPropertiesSelector);
+				functionVm.FunctionChanged += OnFunctionChanged;
+
+				return functionVm;
+			});
 			Functions = new ObservableCollection<FunctionVm>(functions);
+			Functions.CollectionChanged += OnFunctionsCollectionChanged;
 
 			SelectedFunction = Functions.ElementAt(1);
+
 			foreach (var function in Functions)
 				Chart.Series.Add(function.Series);
+
+			AreAnyUnsavedChanges = false;
+		}
+
+		private void ExecuteInsertFromClipboardCommand()
+		{
+			// ToDo: add another file type handling (except with Excel table structure)
+			var textFromClipboard = _clipboardService.GetText();
+			var pointTextModels = textFromClipboard.Split(new[] { "\r\n" }, StringSplitOptions.None);
+			try
+			{
+				// ToDo: add an exceptions check
+				foreach (var pointTextModel in pointTextModels)
+				{
+					if (string.IsNullOrWhiteSpace(pointTextModel))
+						continue;
+
+					var dividedValues = pointTextModel.Split(new[] { "\t" }, StringSplitOptions.None);
+
+					var xValue = int.Parse(dividedValues[0]);
+					var yValue = int.Parse(dividedValues[1]);
+					var point = new PointVm(xValue, yValue);
+
+					SelectedFunction.Function.Add(point);
+				}
+			}
+			catch (Exception)
+			{
+				// ToDo: add custom exception handling
+				_messageService.ShowMessage("Invalid clipboard source format.");
+			}
+		}
+
+		private void ExecuteCopyToClipboardCommand()
+		{
+			var functionTextValue = new StringBuilder();
+			foreach (var point in SelectedFunction.Function.Points)
+			{
+				var textPoint = $"{point.X}\t{point.Y}\r\n";
+				functionTextValue.Append(textPoint);
+			}
+
+			_clipboardService.SetText(functionTextValue.ToString());
 		}
 
 		private async void ExecuteWindowClosingRequestedCommand(CancelEventArgs eventArgs)
@@ -202,13 +295,13 @@ namespace FunctionsDesigner.ViewModels
 			if (!AreAnyUnsavedChanges)
 				return;
 
-			var message = "Close without saving?";
+			var message = "Do you wanna save the changes?";
 			var caption = "Piecewise linear functions designer";
 
 			if (_messageService.ActionConfirmed(message, caption))
 				await SaveProjectAsync(false);
-			else
-				eventArgs.Cancel = true;
+
+			eventArgs.Cancel = false;
 		}
 	}
 }

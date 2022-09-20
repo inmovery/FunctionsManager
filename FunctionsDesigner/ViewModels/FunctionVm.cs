@@ -1,10 +1,16 @@
-﻿using System.Collections.Specialized;
-using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Windows.Input;
 using FunctionsDesigner.Commands;
 using FunctionsDesigner.Converters.JsonConverters;
+using FunctionsDesigner.Events.ValueChangedEvent;
 using FunctionsDesigner.Models;
 using FunctionsDesigner.Models.Interfaces;
+using FunctionsDesigner.Models.PointsComparison;
+using FunctionsDesigner.Services;
 using FunctionsDesigner.ViewModels.Base;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -13,10 +19,14 @@ using SkiaSharp;
 
 namespace FunctionsDesigner.ViewModels
 {
-	public class FunctionVm : BaseViewModel
+	public class FunctionVm : BaseViewModel, IDisposable
 	{
+		private readonly IPointSortingService _pointSortingService;
+
 		public FunctionVm()
 		{
+			_pointSortingService = new PointSortingService();
+
 			Function = new Function();
 			Properties = new FunctionPropertiesSelector();
 
@@ -24,18 +34,21 @@ namespace FunctionsDesigner.ViewModels
 			Series.Values = Function.Points;
 			NewXParameter = 0.0d;
 			NewYParameter = 0.0d;
+
+			Function.Points.CollectionChanged += OnPointsCollectionChanged;
 		}
 
 		public FunctionVm(IFunction function, FunctionPropertiesSelector functionPropertiesSelector)
 		{
+			_pointSortingService = new PointSortingService();
+
 			Function = (Function)function;
 			Properties = functionPropertiesSelector;
 
+			Function.Points.CollectionChanged += OnPointsCollectionChanged;
+
 			Series = BuildLineSeries();
 			Series.Values = Function.Points;
-
-			Function.PropertyChanged += OnFunctionPropertyChanged;
-			Function.CollectionChanged += OnPointsCollectionChanged;
 
 			AddPointCommand = new RelayCommand(ExecuteAddPointCommand);
 			RemovePointCommand = new RelayCommand<PointVm>(ExecuteRemovePointCommand);
@@ -44,13 +57,15 @@ namespace FunctionsDesigner.ViewModels
 		public ICommand AddPointCommand { get; }
 		public ICommand RemovePointCommand { get; }
 
+		public event EventHandler FunctionChanged;
+
 		public Function Function
 		{
 			get { return NotifyPropertyGet(() => Function); }
 			set { NotifyPropertySet(() => Function, value); }
 		}
 
-		[JsonProperty(TypeNameHandling = TypeNameHandling.Objects, ItemConverterType = typeof(PointConverter))]
+		[JsonProperty(ItemConverterType = typeof(PointConverter))]
 		public LineSeries<IPoint> Series
 		{
 			get { return NotifyPropertyGet(() => Series); }
@@ -75,13 +90,61 @@ namespace FunctionsDesigner.ViewModels
 			set { NotifyPropertySet(() => NewYParameter, value); }
 		}
 
-		private void OnFunctionPropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
+		public void Dispose()
 		{
-			Series.Values = Function.Points;
+			FunctionChanged = null;
+			Function.Points.CollectionChanged -= OnPointsCollectionChanged;
+			foreach (var point in Function.Points)
+				((PointVm)point).PropertyValueChanged -= OnPointPropertyValueChanged;
+		}
+
+		private void OnPointPropertyValueChanged(object sender, PropertyValueChangedEventArgs eventArgs)
+		{
+			if (sender is not IPoint point)
+				throw new ArgumentException(nameof(sender));
+
+			var isXProperty = eventArgs.PropertyName.Equals(nameof(IPoint.X));
+			if (!isXProperty)
+			{
+				SortPoints();
+				return;
+			}
+
+			var oldValue = (double?)eventArgs.OldValue;
+
+			var pointInfo = new PointInfo(point, oldValue);
+			var comparer = new PointModelComparer(Function.Points, new[] { pointInfo });
+
+			SortPoints(comparer);
+			UpdateAndNotifyChanges();
 		}
 
 		private void OnPointsCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs)
 		{
+			IComparer<IPoint> comparer;
+			List<PointInfo> pointsInfo;
+
+			switch (eventArgs.Action)
+			{
+				case NotifyCollectionChangedAction.Add:
+					pointsInfo = eventArgs.NewItems.Cast<IPoint>().Select(point => new PointInfo(point)).ToList();
+					comparer = new PointModelComparer(Function.Points, pointsInfo);
+					break;
+
+				case NotifyCollectionChangedAction.Replace:
+					var oldPoints = eventArgs.OldItems.Cast<IPoint>().ToArray();
+					var newPoints = eventArgs.NewItems.Cast<IPoint>().ToArray();
+
+					pointsInfo = oldPoints.Select(point => new PointInfo(newPoints[0], oldPoints[0].X)).ToList();
+					comparer = new PointModelComparer(Function.Points, pointsInfo);
+					break;
+
+				default:
+					return;
+			}
+
+			SortPoints(comparer);
+			UpdateAndNotifyChanges();
 		}
 
 		private LineSeries<IPoint, CustomChartGeometry> BuildCustomLineSeries()
@@ -114,14 +177,32 @@ namespace FunctionsDesigner.ViewModels
 			return series;
 		}
 
+		private void UpdateAndNotifyChanges()
+		{
+			Series.Values = Function.Points;
+			FunctionChanged?.Invoke(this, EventArgs.Empty);
+		}
+
 		private void ExecuteAddPointCommand()
 		{
-			Function.Add(NewXParameter, NewYParameter);
+			var point = new PointVm(NewXParameter, NewYParameter);
+			point.PropertyValueChanged += OnPointPropertyValueChanged;
+
+			Function.Add(point);
 		}
 
 		private void ExecuteRemovePointCommand(PointVm point)
 		{
-			Function.Points.Remove(point);
+			Function.Remove(point);
+		}
+
+		private void SortPoints(IComparer<IPoint> comparer = null)
+		{
+			var sortedPoints = _pointSortingService.SortPoints(Function.Points, comparer);
+
+			Function.Points.CollectionChanged -= OnPointsCollectionChanged;
+			Function.Points = new ObservableCollection<IPoint>(sortedPoints);
+			Function.Points.CollectionChanged += OnPointsCollectionChanged;
 		}
 	}
 }

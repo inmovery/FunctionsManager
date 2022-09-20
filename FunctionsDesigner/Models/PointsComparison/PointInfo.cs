@@ -1,6 +1,4 @@
-﻿using FunctionsDesigner.Converters.JsonConverters;
-using FunctionsDesigner.Models.Interfaces;
-using Newtonsoft.Json;
+﻿using FunctionsDesigner.Models.Interfaces;
 
 namespace FunctionsDesigner.Models.PointsComparison
 {
@@ -12,7 +10,6 @@ namespace FunctionsDesigner.Models.PointsComparison
 			OldXValue = oldXValue;
 		}
 
-		[JsonProperty(TypeNameHandling = TypeNameHandling.Objects, ItemConverterType = typeof(PointConverter))]
 		public IPoint Point { get; }
 
 		public double? OldXValue { get; }
