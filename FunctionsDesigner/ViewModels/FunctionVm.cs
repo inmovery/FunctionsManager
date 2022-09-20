@@ -46,6 +46,8 @@ namespace FunctionsDesigner.ViewModels
 			Properties = functionPropertiesSelector;
 
 			Function.Points.CollectionChanged += OnPointsCollectionChanged;
+			foreach (var point in Function.Points)
+				((PointVm)point).PropertyValueChanged += OnPointPropertyValueChanged;
 
 			Series = BuildLineSeries();
 			Series.Values = Function.Points;
@@ -189,11 +191,13 @@ namespace FunctionsDesigner.ViewModels
 			point.PropertyValueChanged += OnPointPropertyValueChanged;
 
 			Function.Add(point);
+			UpdateAndNotifyChanges();
 		}
 
 		private void ExecuteRemovePointCommand(PointVm point)
 		{
 			Function.Remove(point);
+			UpdateAndNotifyChanges();
 		}
 
 		private void SortPoints(IComparer<IPoint> comparer = null)

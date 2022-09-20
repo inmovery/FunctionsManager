@@ -13,6 +13,6 @@ namespace FunctionsDesigner.Services.Interfaces
 
 		Task LoadProjectAsync(string filePath);
 
-		Task SaveActiveProjectAsync(string filePath);
+		Task SaveProjectAsync(string filePath);
 	}
 }

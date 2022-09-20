@@ -46,6 +46,7 @@ namespace FunctionsDesigner.ViewModels
 			Functions = new ObservableCollection<FunctionVm>();
 			Functions.CollectionChanged += OnFunctionsCollectionChanged;
 
+			// ToDo: change to composite resource in xaml
 			var notSelectedFunction = new Function("Not selected");
 			notSelectedFunction.MarkAsUnused();
 
@@ -179,11 +180,9 @@ namespace FunctionsDesigner.ViewModels
 
 		private async Task SaveProjectAsync(bool showConfirmation = true)
 		{
-			if (string.IsNullOrWhiteSpace(_filePath))
-			{
-				if (!_fileSystemService.SaveFile(GetProjectExtensionDescription(), Constants.ProjectFileExtension, out _filePath))
-					return;
-			}
+			// string.IsNullOrWhiteSpace(_filePath)
+			if (!_fileSystemService.SaveFile(GetProjectExtensionDescription(), Constants.ProjectFileExtension, out _filePath))
+				return;
 
 			try
 			{
@@ -191,7 +190,7 @@ namespace FunctionsDesigner.ViewModels
 				Project.AddRangeFunctions(functions);
 				_projectService.SetupProjectInstance(Project);
 
-				await _projectService.SaveActiveProjectAsync(_filePath);
+				await _projectService.SaveProjectAsync(_filePath);
 
 				if (showConfirmation)
 					_messageService.ShowMessage("Project successfully saved.");
@@ -215,6 +214,13 @@ namespace FunctionsDesigner.ViewModels
 
 		private async void ExecuteOpenProjectCommand()
 		{
+			var notSelectedFunction = Functions.First();
+			foreach (var function in Functions)
+				function.Dispose();
+
+			Functions.Clear();
+			Chart = new ChartVm();
+
 			// ToDo: add a change check
 
 			if (_fileSystemService.OpenFile(GetProjectExtensionDescription(), Constants.ProjectFileExtension, out _filePath))
@@ -238,6 +244,8 @@ namespace FunctionsDesigner.ViewModels
 
 				return functionVm;
 			});
+
+			Functions.Add(notSelectedFunction);
 			Functions = new ObservableCollection<FunctionVm>(functions);
 			Functions.CollectionChanged += OnFunctionsCollectionChanged;
 

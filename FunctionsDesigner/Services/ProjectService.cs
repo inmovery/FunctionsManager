@@ -56,7 +56,7 @@ namespace FunctionsDesigner.Services
 			}
 		}
 
-		public Task SaveActiveProjectAsync(string filePath)
+		public Task SaveProjectAsync(string filePath)
 		{
 			if (ProjectInstance == null)
 				throw new InvalidOperationException("The active project is not specified.");
